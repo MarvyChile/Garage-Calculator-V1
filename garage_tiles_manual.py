@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.14.2")
+st.title("Garage Tile Designer Manual v3.14.4")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -48,19 +48,18 @@ rows = math.ceil(largo_m / 0.4)
 if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
 
-# ✅ Botón justo después del selector de color
 if st.button("Aplicar color base"):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
 
-# 6. Mostrar resumen de piezas antes del gráfico
+# 6. Mostrar resumen de piezas
 total_palmetas = rows * cols
 total_bordillos = 0
 total_esquineros = 0
 if incluir_bordillos:
-    if "Arriba" in pos_bord or "Abajo" in pos_bord:
-        total_bordillos += cols
-    if "Izquierda" in pos_bord or "Derecha" in pos_bord:
-        total_bordillos += rows
+    if "Arriba" in pos_bord: total_bordillos += cols
+    if "Abajo" in pos_bord: total_bordillos += cols
+    if "Izquierda" in pos_bord: total_bordillos += rows
+    if "Derecha" in pos_bord: total_bordillos += rows
 if incluir_esquineros:
     total_esquineros = 4
 
@@ -91,13 +90,17 @@ for y in range(rows):
 if incluir_bordillos:
     for side in pos_bord:
         if side == "Arriba":
-            ax.add_patch(plt.Rectangle((0, rows), cols, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+            for x in range(cols):
+                ax.add_patch(plt.Rectangle((x, rows), 1, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Abajo":
-            ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+            for x in range(cols):
+                ax.add_patch(plt.Rectangle((x, -0.15), 1, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Izquierda":
-            ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+            for y in range(rows):
+                ax.add_patch(plt.Rectangle((-0.15, y), 0.15, 1, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Derecha":
-            ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+            for y in range(rows):
+                ax.add_patch(plt.Rectangle((cols, y), 0.15, 1, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
 # 9. Esquineros
 if incluir_esquineros:
@@ -106,13 +109,11 @@ if incluir_esquineros:
         ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
 # 10. Medidas con líneas guía
-# Líneas para largo (parte superior)
 ax.text(cols/2, rows + 0.6, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
 ax.plot([0, 0], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([cols, cols], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([0, cols], [rows + 0.5, rows + 0.5], color="#666666", lw=0.8)
 
-# Líneas para ancho (lado derecho)
 ax.text(cols + 0.6, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
 ax.plot([cols + 0.3, cols + 0.5], [0, 0], color="#666666", lw=0.8)
 ax.plot([cols + 0.3, cols + 0.5], [rows, rows], color="#666666", lw=0.8)
