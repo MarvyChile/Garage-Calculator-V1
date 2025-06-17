@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.14.1")
+st.title("Garage Tile Designer Manual v3.14.2")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -40,17 +40,20 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# ✅ Botón antes de mostrar cantidades
-if st.button("Aplicar color base"):
-    cols = math.ceil(ancho_m / 0.4)
-    rows = math.ceil(largo_m / 0.4)
-    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
-
-# 4. Cálculo de grilla y cantidades
+# 4. Cálculo de grilla
 cols = math.ceil(ancho_m / 0.4)
 rows = math.ceil(largo_m / 0.4)
-total_palmetas = rows * cols
 
+# 5. Inicializar y actualizar DataFrame
+if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
+    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+
+# ✅ Botón justo después del selector de color
+if st.button("Aplicar color base"):
+    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+
+# 6. Mostrar resumen de piezas antes del gráfico
+total_palmetas = rows * cols
 total_bordillos = 0
 total_esquineros = 0
 if incluir_bordillos:
@@ -61,7 +64,6 @@ if incluir_bordillos:
 if incluir_esquineros:
     total_esquineros = 4
 
-# 5. Mostrar resumen de piezas
 st.markdown(f"""
 ### Cantidad necesaria:
 - **Palmetas:** {total_palmetas}
@@ -69,16 +71,11 @@ st.markdown(f"""
 - **Esquineros:** {total_esquineros}
 """)
 
-# 6. Preparar colores y DataFrame
-borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
-color_palmeta = colores[color_base]
-color_bordillo = "#000000"  # SIEMPRE negro
-
-if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
-    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+# 7. Preparar visualización
 df = st.session_state.df
+borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
+color_bordillo = "#000000"
 
-# 7. Renderizar visualización
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
@@ -90,44 +87,29 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# 8. Bordillos siempre NEGROS, con borde dinámico
+# 8. Bordillos
 if incluir_bordillos:
     for side in pos_bord:
         if side == "Arriba":
-            ax.add_patch(plt.Rectangle((0, rows), cols, 0.15,
-                                       facecolor=color_bordillo,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+            ax.add_patch(plt.Rectangle((0, rows), cols, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Abajo":
-            ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15,
-                                       facecolor=color_bordillo,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+            ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Izquierda":
-            ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows,
-                                       facecolor=color_bordillo,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+            ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
         if side == "Derecha":
-            ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows,
-                                       facecolor=color_bordillo,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+            ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
-# 9. Esquineros también NEGROS
+# 9. Esquineros
 if incluir_esquineros:
     s = 0.15
-    for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
-        ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s,
-                                   facecolor=color_bordillo,
-                                   edgecolor=borde_general,
-                                   linewidth=0.8))
+    for (cx, cy) in [(0,0), (0,rows), (cols,0), (cols,rows)]:
+        ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
-# 10. Mostrar medidas en la imagen
+# 10. Medidas
 ax.text(cols/2, rows + 0.5, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
 ax.text(cols + 0.5, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
 
-# 11. Finalizar
+# 11. Finalización
 ax.set_xlim(-0.5, cols + 1.5)
 ax.set_ylim(-0.5, rows + 1.5)
 ax.set_aspect('equal')
