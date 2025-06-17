@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Piso Garage - Calculadora V1")
+st.title("Garage Tile Designer Manual v3.14.5")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -113,18 +113,32 @@ if incluir_esquineros:
     for (cx, cy) in [(0,0), (0,rows), (cols,0), (cols,rows)]:
         ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
-# 11. Medidas con líneas guía
-ax.text(cols/2, rows + 0.6, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
+# 11. Calcular medidas reales
+longitud_real_m = cols * 0.4
+ancho_real_m = rows * 0.4
+
+if incluir_bordillos:
+    if "Izquierda" in pos_bord:
+        longitud_real_m += 0.06
+    if "Derecha" in pos_bord:
+        longitud_real_m += 0.06
+    if "Arriba" in pos_bord:
+        ancho_real_m += 0.06
+    if "Abajo" in pos_bord:
+        ancho_real_m += 0.06
+
+# 12. Medidas visuales ajustadas
+ax.text(cols/2, rows + 0.6, f"{longitud_real_m:.2f} m", ha='center', va='bottom', fontsize=10)
 ax.plot([0, 0], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([cols, cols], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([0, cols], [rows + 0.5, rows + 0.5], color="#666666", lw=0.8)
 
-ax.text(cols + 0.6, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
+ax.text(cols + 0.6, rows/2, f"{ancho_real_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
 ax.plot([cols + 0.3, cols + 0.5], [0, 0], color="#666666", lw=0.8)
 ax.plot([cols + 0.3, cols + 0.5], [rows, rows], color="#666666", lw=0.8)
 ax.plot([cols + 0.5, cols + 0.5], [0, rows], color="#666666", lw=0.8)
 
-# 12. Finalización
+# 13. Finalización
 ax.set_xlim(-0.5, cols + 1.5)
 ax.set_ylim(-0.5, rows + 1.5)
 ax.set_aspect('equal')
