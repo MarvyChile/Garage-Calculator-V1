@@ -13,11 +13,19 @@ factor = 1 if unidad == "metros" else 0.01
 min_val = 1.0 if unidad == "metros" else 10.0
 
 ancho_input = st.number_input(
-    f"Ancho del espacio ({unidad})", min_value=min_val,
-    value=4.0 if unidad == "metros" else 400.0, step=1.0, key="ancho")
+    f"Ancho del espacio ({unidad})",
+    min_value=min_val,
+    value=4.0 if unidad == "metros" else 400.0,
+    step=1.0,
+    key="ancho"
+)
 largo_input = st.number_input(
-    f"Largo del espacio ({unidad})", min_value=min_val,
-    value=6.0 if unidad == "metros" else 600.0, step=1.0, key="largo")
+    f"Largo del espacio ({unidad})",
+    min_value=min_val,
+    value=6.0 if unidad == "metros" else 600.0,
+    step=1.0,
+    key="largo"
+)
 
 ancho_m = ancho_input * factor
 largo_m = largo_input * factor
@@ -36,10 +44,15 @@ pos_bord = st.multiselect(
 # 3. Colores y base
 colores = {
     "Blanco":"#FFFFFF","Negro":"#000000","Gris":"#B0B0B0","Gris Oscuro":"#4F4F4F",
-    "Azul":"#0070C0","Celeste":"#00B0F0","Amarillo":"#FFFF00","Verde":"#00B050","Rojo":"#FF0000"
+    "Azul":"#0070C0","Celeste":"#00B0F0","Amarillo":"#FFFF00",
+    "Verde":"#00B050","Rojo":"#FF0000"
 }
 lista_colores = list(colores.keys())
-color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
+color_base = st.selectbox(
+    "Color base",
+    lista_colores,
+    index=lista_colores.index("Blanco")
+)
 
 # Determina color de borde general
 borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
@@ -56,22 +69,11 @@ if st.button("Aplicar color base"):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
     df = st.session_state.df
 
-# 6. Editor manual
-edited = st.data_editor(
-    df,
-    num_rows="fixed",
-    use_container_width=True,
-    key="editor",
-    column_config={col: st.column_config.SelectboxColumn(options=lista_colores)
-                   for col in df.columns}
-)
-st.session_state.df = edited
-
-# 7. Dibujar la grid con bordes condicionales
+# 6. Renderizar vista gráfica con bordes condicionales
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
-        color_hex = colores.get(edited.iat[y, x], "#FFFFFF")
+        color_hex = colores.get(df.iat[y, x], "#FFFFFF")
         ax.add_patch(plt.Rectangle(
             (x, rows-1-y), 1, 1,
             facecolor=color_hex,
@@ -79,30 +81,30 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# 8. Bordillos delgados con borde condicional
+# 7. Bordillos delgados con borde condicional
 if incluir_bordillos:
     if "Arriba" in pos_bord:
-        ax.add_patch(plt.Rectangle((0, rows),    cols, 0.15,
+        ax.add_patch(plt.Rectangle((0, rows), cols, 0.15,
                                    facecolor=borde_general,
                                    edgecolor=borde_general,
                                    linewidth=0.8))
     if "Abajo" in pos_bord:
-        ax.add_patch(plt.Rectangle((0, -0.15),   cols, 0.15,
+        ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15,
                                    facecolor=borde_general,
                                    edgecolor=borde_general,
                                    linewidth=0.8))
     if "Izquierda" in pos_bord:
-        ax.add_patch(plt.Rectangle((-0.15, 0),   0.15, rows,
+        ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows,
                                    facecolor=borde_general,
                                    edgecolor=borde_general,
                                    linewidth=0.8))
     if "Derecha" in pos_bord:
-        ax.add_patch(plt.Rectangle((cols, 0),    0.15, rows,
+        ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows,
                                    facecolor=borde_general,
                                    edgecolor=borde_general,
                                    linewidth=0.8))
 
-# 9. Esquineros con borde condicional
+# 8. Esquineros con borde condicional
 if incluir_esquineros:
     s = 0.15
     for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
