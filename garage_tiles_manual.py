@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.13")
+st.title("Garage Tile Designer Manual v3.14")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -122,8 +122,13 @@ if incluir_esquineros:
                                    edgecolor=borde_general,
                                    linewidth=0.8))
 
-ax.set_xlim(-0.5, cols+0.5)
-ax.set_ylim(-0.5, rows+0.5)
+# 11. Mostrar medidas en la imagen
+ax.text(cols/2, rows + 0.5, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
+ax.text(cols + 0.5, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
+
+# 12. Finalizar
+ax.set_xlim(-0.5, cols + 1.5)
+ax.set_ylim(-0.5, rows + 1.5)
 ax.set_aspect('equal')
 ax.axis('off')
 st.pyplot(fig)
