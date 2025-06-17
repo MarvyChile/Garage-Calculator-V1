@@ -105,9 +105,18 @@ if incluir_esquineros:
     for (cx, cy) in [(0,0), (0,rows), (cols,0), (cols,rows)]:
         ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
-# 10. Medidas
-ax.text(cols/2, rows + 0.5, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
-ax.text(cols + 0.5, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
+# 10. Medidas con líneas guía
+# Líneas para largo (parte superior)
+ax.text(cols/2, rows + 0.6, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
+ax.plot([0, 0], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
+ax.plot([cols, cols], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
+ax.plot([0, cols], [rows + 0.5, rows + 0.5], color="#666666", lw=0.8)
+
+# Líneas para ancho (lado derecho)
+ax.text(cols + 0.6, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
+ax.plot([cols + 0.3, cols + 0.5], [0, 0], color="#666666", lw=0.8)
+ax.plot([cols + 0.3, cols + 0.5], [rows, rows], color="#666666", lw=0.8)
+ax.plot([cols + 0.5, cols + 0.5], [0, rows], color="#666666", lw=0.8)
 
 # 11. Finalización
 ax.set_xlim(-0.5, cols + 1.5)
