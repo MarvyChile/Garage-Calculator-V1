@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.11")
+st.title("Garage Tile Designer Manual v3.12")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -32,7 +32,7 @@ pos_bord = st.multiselect(
     default=["Arriba", "Abajo", "Izquierda", "Derecha"]
 )
 
-# 3. Colores y base
+# 3. Colores y color base
 colores = {
     "Blanco":"#FFFFFF","Negro":"#000000","Gris":"#B0B0B0","Gris Oscuro":"#4F4F4F",
     "Azul":"#0070C0","Celeste":"#00B0F0","Amarillo":"#FFFF00","Verde":"#00B050","Rojo":"#FF0000"
@@ -40,24 +40,44 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# Borde blanco si fondo negro, si no: negro
+# 4. Cálculo de grilla y cantidades
+cols = math.ceil(ancho_m / 0.4)
+rows = math.ceil(largo_m / 0.4)
+total_palmetas = rows * cols
+
+total_bordillos = 0
+total_esquineros = 0
+if incluir_bordillos:
+    if "Arriba" in pos_bord or "Abajo" in pos_bord:
+        total_bordillos += cols
+    if "Izquierda" in pos_bord or "Derecha" in pos_bord:
+        total_bordillos += rows
+if incluir_esquineros:
+    total_esquineros = 4
+
+# 5. Mostrar resumen de piezas
+st.markdown(f"""
+### 🧮 Detalle de piezas necesarias
+- **Palmetas:** {total_palmetas}
+- **Bordillos:** {total_bordillos}
+- **Esquineros:** {total_esquineros}
+""")
+
+# 6. Preparar colores y DataFrame
 borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
 color_palmeta = colores[color_base]
 color_bordillo = "#000000"  # SIEMPRE negro
 
-# 4. Crear grilla
-cols = math.ceil(ancho_m / 0.4)
-rows = math.ceil(largo_m / 0.4)
 if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
 df = st.session_state.df
 
-# 5. Botón aplicar color base
+# 7. Aplicar color base
 if st.button("Aplicar color base"):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
     df = st.session_state.df
 
-# 6. Renderizar diseño
+# 8. Renderizar visualización
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
@@ -69,7 +89,7 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# 7. Bordillos siempre NEGROS, borde dinámico
+# 9. Bordillos siempre NEGROS, con borde dinámico
 if incluir_bordillos:
     for side in pos_bord:
         if side == "Arriba":
@@ -93,7 +113,7 @@ if incluir_bordillos:
                                        edgecolor=borde_general,
                                        linewidth=0.8))
 
-# 8. Esquineros también NEGROS
+# 10. Esquineros también NEGROS
 if incluir_esquineros:
     s = 0.15
     for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
@@ -102,7 +122,6 @@ if incluir_esquineros:
                                    edgecolor=borde_general,
                                    linewidth=0.8))
 
-# 9. Final
 ax.set_xlim(-0.5, cols+0.5)
 ax.set_ylim(-0.5, rows+0.5)
 ax.set_aspect('equal')
