@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.12")
+st.title("Garage Tile Designer Manual v3.13")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -57,7 +57,7 @@ if incluir_esquineros:
 
 # 5. Mostrar resumen de piezas
 st.markdown(f"""
-### 🧮 Detalle de piezas necesarias
+### Cantidad necesaria:
 - **Palmetas:** {total_palmetas}
 - **Bordillos:** {total_bordillos}
 - **Esquineros:** {total_esquineros}
