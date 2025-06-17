@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -29,7 +28,8 @@ st.markdown(f"**Área total:** {area_m2} m²")
 incluir_bordillos = st.checkbox("Agregar bordillos", value=True)
 incluir_esquineros = st.checkbox("Agregar esquineros", value=True)
 pos_bord = st.multiselect(
-    "¿Dónde colocar bordillos?", ["Arriba", "Abajo", "Izquierda", "Derecha"],
+    "¿Dónde colocar bordillos?",
+    ["Arriba", "Abajo", "Izquierda", "Derecha"],
     default=["Arriba", "Abajo", "Izquierda", "Derecha"]
 )
 
@@ -41,15 +41,14 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# Determinar color de borde general:
+# Determina color de borde general
 borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
 
-# 4. Inicializar o actualizar DataFrame
+# 4. Inicializar o actualizar grid en session_state
 cols = math.ceil(ancho_m / 0.4)
 rows = math.ceil(largo_m / 0.4)
 if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
-
 df = st.session_state.df
 
 # 5. Botón aplicar color base
@@ -58,14 +57,17 @@ if st.button("Aplicar color base"):
     df = st.session_state.df
 
 # 6. Editor manual
-st.subheader("Diseño personalizado")
 edited = st.data_editor(
-    df, num_rows="fixed", use_container_width=True, key="editor",
-    column_config={col: st.column_config.SelectboxColumn(options=lista_colores) for col in df.columns}
+    df,
+    num_rows="fixed",
+    use_container_width=True,
+    key="editor",
+    column_config={col: st.column_config.SelectboxColumn(options=lista_colores)
+                   for col in df.columns}
 )
 st.session_state.df = edited
 
-# 7. Renderizar vista gráfica con bordes condicionales
+# 7. Dibujar la grid con bordes condicionales
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
@@ -77,18 +79,39 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# Bordillos delgados
+# 8. Bordillos delgados con borde condicional
 if incluir_bordillos:
-    if "Arriba" in pos_bord: ax.add_patch(plt.Rectangle((0, rows), cols, 0.15, facecolor=borde_general))
-    if "Abajo" in pos_bord: ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15, facecolor=borde_general))
-    if "Izquierda" in pos_bord: ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows, facecolor=borde_general))
-    if "Derecha" in pos_bord: ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows, facecolor=borde_general))
+    if "Arriba" in pos_bord:
+        ax.add_patch(plt.Rectangle((0, rows),    cols, 0.15,
+                                   facecolor=borde_general,
+                                   edgecolor=borde_general,
+                                   linewidth=0.8))
+    if "Abajo" in pos_bord:
+        ax.add_patch(plt.Rectangle((0, -0.15),   cols, 0.15,
+                                   facecolor=borde_general,
+                                   edgecolor=borde_general,
+                                   linewidth=0.8))
+    if "Izquierda" in pos_bord:
+        ax.add_patch(plt.Rectangle((-0.15, 0),   0.15, rows,
+                                   facecolor=borde_general,
+                                   edgecolor=borde_general,
+                                   linewidth=0.8))
+    if "Derecha" in pos_bord:
+        ax.add_patch(plt.Rectangle((cols, 0),    0.15, rows,
+                                   facecolor=borde_general,
+                                   edgecolor=borde_general,
+                                   linewidth=0.8))
 
-# Esquineros
+# 9. Esquineros con borde condicional
 if incluir_esquineros:
     s = 0.15
-    for (x, y) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
-        ax.add_patch(plt.Rectangle((x-s/2, y-s/2), s, s, facecolor=borde_general))
+    for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
+        ax.add_patch(plt.Rectangle(
+            (cx-s/2, cy-s/2), s, s,
+            facecolor=borde_general,
+            edgecolor=borde_general,
+            linewidth=0.8
+        ))
 
 ax.set_xlim(-0.5, cols+0.5)
 ax.set_ylim(-0.5, rows+0.5)
