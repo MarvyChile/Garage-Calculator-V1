@@ -40,9 +40,12 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# 4. Cálculo de grilla
+# 4. Cálculo de palmetas (cada una mide 0.40m)
 cols = math.ceil(ancho_m / 0.4)
 rows = math.ceil(largo_m / 0.4)
+
+ancho_real_m = cols * 0.4
+largo_real_m = rows * 0.4
 
 # 5. Inicializar y actualizar DataFrame
 if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
@@ -108,13 +111,13 @@ if incluir_esquineros:
     for (cx, cy) in [(0,0), (0,rows), (cols,0), (cols,rows)]:
         ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
 
-# 10. Medidas con líneas guía
-ax.text(cols/2, rows + 0.6, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
+# 10. Medidas REALES con líneas guía
+ax.text(cols/2, rows + 0.6, f"{ancho_real_m:.2f} m", ha='center', va='bottom', fontsize=10)
 ax.plot([0, 0], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([cols, cols], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
 ax.plot([0, cols], [rows + 0.5, rows + 0.5], color="#666666", lw=0.8)
 
-ax.text(cols + 0.6, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
+ax.text(cols + 0.6, rows/2, f"{largo_real_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
 ax.plot([cols + 0.3, cols + 0.5], [0, 0], color="#666666", lw=0.8)
 ax.plot([cols + 0.3, cols + 0.5], [rows, rows], color="#666666", lw=0.8)
 ax.plot([cols + 0.5, cols + 0.5], [0, rows], color="#666666", lw=0.8)
