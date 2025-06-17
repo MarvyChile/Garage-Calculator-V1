@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -6,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.8")
+st.title("Garage Tile Designer Manual v3.9")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -41,37 +40,26 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# Determina color de borde general: blanco si base es Negro, sino negro
+# Determinar color de borde: blanco si base negro, negro en otros casos
 borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
 
-# 4. Inicializar o actualizar grid en session_state
+# 4. Crear grilla según dimensiones
 cols = math.ceil(ancho_m / 0.4)
 rows = math.ceil(largo_m / 0.4)
 if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
 df = st.session_state.df
 
-# 5. Botón aplicar color base
+# 5. Botón para aplicar color base a todo
 if st.button("Aplicar color base"):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
     df = st.session_state.df
 
-# 6. Editor manual sin header
-edited = st.data_editor(
-    df,
-    num_rows="fixed",
-    use_container_width=True,
-    key="editor",
-    column_config={col: st.column_config.SelectboxColumn(options=lista_colores)
-                   for col in df.columns}
-)
-st.session_state.df = edited
-
-# 7. Renderizar grid con bordes dinámicos
+# 6. Mostrar grilla visual
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
-        color_hex = colores.get(edited.iat[y, x], "#FFFFFF")
+        color_hex = colores.get(df.iat[y, x], "#FFFFFF")
         ax.add_patch(plt.Rectangle(
             (x, rows-1-y), 1, 1,
             facecolor=color_hex,
@@ -79,40 +67,33 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# 8. Bordillos delgados con borde dinámico
+# 7. Bordillos
 if incluir_bordillos:
     for side in pos_bord:
         if side == "Arriba":
             ax.add_patch(plt.Rectangle((0, rows), cols, 0.15,
                                        facecolor=borde_general,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+                                       edgecolor=borde_general, linewidth=0.8))
         if side == "Abajo":
             ax.add_patch(plt.Rectangle((0, -0.15), cols, 0.15,
                                        facecolor=borde_general,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+                                       edgecolor=borde_general, linewidth=0.8))
         if side == "Izquierda":
             ax.add_patch(plt.Rectangle((-0.15, 0), 0.15, rows,
                                        facecolor=borde_general,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+                                       edgecolor=borde_general, linewidth=0.8))
         if side == "Derecha":
             ax.add_patch(plt.Rectangle((cols, 0), 0.15, rows,
                                        facecolor=borde_general,
-                                       edgecolor=borde_general,
-                                       linewidth=0.8))
+                                       edgecolor=borde_general, linewidth=0.8))
 
-# 9. Esquineros con borde dinámico
+# 8. Esquineros
 if incluir_esquineros:
     s = 0.15
     for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
-        ax.add_patch(plt.Rectangle(
-            (cx-s/2, cy-s/2), s, s,
-            facecolor=borde_general,
-            edgecolor=borde_general,
-            linewidth=0.8
-        ))
+        ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s,
+                                   facecolor=borde_general,
+                                   edgecolor=borde_general, linewidth=0.8))
 
 ax.set_xlim(-0.5, cols+0.5)
 ax.set_ylim(-0.5, rows+0.5)
