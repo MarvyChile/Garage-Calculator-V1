@@ -1,130 +1,132 @@
 import streamlit as st
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
-import math
+import matplotlib.patches as patches
+import numpy as np
 
+# Configuración inicial
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.14.4")
+st.title("Garage Tile Designer Final")
 
-# 1. Unidad de medida y entradas
-unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
-factor = 1 if unidad == "metros" else 0.01
-min_val = 1.0 if unidad == "metros" else 10.0
+# Selección de unidad
+unidad = st.selectbox("Selecciona la unidad de medida", ["centímetros", "metros"])
 
-ancho_input = st.number_input(
-    f"Ancho del espacio ({unidad})", min_value=min_val,
-    value=4.0 if unidad == "metros" else 400.0, step=1.0, key="ancho")
-largo_input = st.number_input(
-    f"Largo del espacio ({unidad})", min_value=min_val,
-    value=6.0 if unidad == "metros" else 600.0, step=1.0, key="largo")
+# Conversión
+factor = 0.01 if unidad == "centímetros" else 1.0
 
-ancho_m = ancho_input * factor
-largo_m = largo_input * factor
-area_m2 = round(ancho_m * largo_m, 2)
+# Inputs
+ancho = st.number_input(f"Ancho del espacio ({unidad})", min_value=40.0, step=10.0) * factor
+largo = st.number_input(f"Largo del espacio ({unidad})", min_value=40.0, step=10.0) * factor
+
+area_m2 = round(ancho * largo, 2)
 st.markdown(f"**Área total:** {area_m2} m²")
 
-# 2. Bordillos y esquineros
-incluir_bordillos = st.checkbox("Agregar bordillos", value=True)
-incluir_esquineros = st.checkbox("Agregar esquineros", value=True)
-pos_bord = st.multiselect(
-    "¿Dónde colocar bordillos?", ["Arriba", "Abajo", "Izquierda", "Derecha"],
-    default=["Arriba", "Abajo", "Izquierda", "Derecha"]
-)
+# Opciones
+agregar_bordillos = st.checkbox("Agregar bordillos", value=True)
+agregar_esquineros = st.checkbox("Agregar esquineros", value=True)
+lados_bordillos = st.multiselect("¿Dónde colocar bordillos?", ["Arriba", "Abajo", "Izquierda", "Derecha"], default=["Arriba", "Abajo", "Izquierda", "Derecha"])
 
-# 3. Colores y color base
-colores = {
-    "Blanco":"#FFFFFF","Negro":"#000000","Gris":"#B0B0B0","Gris Oscuro":"#4F4F4F",
-    "Azul":"#0070C0","Celeste":"#00B0F0","Amarillo":"#FFFF00","Verde":"#00B050","Rojo":"#FF0000"
+# Parámetros
+TILE_CM = 40
+TILE_M = TILE_CM / 100
+
+cols = int(np.ceil(ancho / TILE_M))
+rows = int(np.ceil(largo / TILE_M))
+
+# Colores disponibles
+colores_palmetas = {
+    "Negro": "#000000",
+    "Gris": "#BEBEBE",
+    "Gris Oscuro": "#4F4F4F",
+    "Azul": "#4682B4",
+    "Celeste": "#87CEFA",
+    "Amarillo": "#FFD700",
+    "Verde": "#228B22",
+    "Rojo": "#FF0000",
+    "Blanco": "#FFFFFF"
 }
-lista_colores = list(colores.keys())
-color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
-# 4. Cálculo de palmetas (cada una mide 0.40m)
-cols = math.ceil(ancho_m / 0.4)
-rows = math.ceil(largo_m / 0.4)
-
-ancho_real_m = cols * 0.4
-largo_real_m = rows * 0.4
-
-# 5. Inicializar y actualizar DataFrame
-if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
-    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+color_base = st.selectbox("Color base", list(colores_palmetas.keys()))
+color_hex = colores_palmetas[color_base]
 
 if st.button("Aplicar color base"):
-    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+    pass  # Acción decorativa
 
-# 6. Mostrar resumen de piezas
-total_palmetas = rows * cols
-total_bordillos = 0
-total_esquineros = 0
-if incluir_bordillos:
-    if "Arriba" in pos_bord: total_bordillos += cols
-    if "Abajo" in pos_bord: total_bordillos += cols
-    if "Izquierda" in pos_bord: total_bordillos += rows
-    if "Derecha" in pos_bord: total_bordillos += rows
-if incluir_esquineros:
-    total_esquineros = 4
+# Cálculo real
+real_ancho = cols * TILE_M
+real_largo = rows * TILE_M
 
-st.markdown(f"""
-### Cantidad necesaria:
-- **Palmetas:** {total_palmetas}
-- **Bordillos:** {total_bordillos}
-- **Esquineros:** {total_esquineros}
-""")
+# Cálculo de bordillos
+bordillos = 0
+if agregar_bordillos:
+    if "Arriba" in lados_bordillos:
+        bordillos += cols
+    if "Abajo" in lados_bordillos:
+        bordillos += cols
+    if "Izquierda" in lados_bordillos:
+        bordillos += rows
+    if "Derecha" in lados_bordillos:
+        bordillos += rows
 
-# 7. Preparar visualización
-df = st.session_state.df
-borde_general = "#FFFFFF" if color_base == "Negro" else "#000000"
-color_bordillo = "#000000"
+esquineros = 4 if agregar_esquineros else 0
+total_tiles = rows * cols
 
-fig, ax = plt.subplots(figsize=(cols/2, rows/2))
+# Mostrar cantidades
+st.markdown("### Cantidad necesaria:")
+st.markdown(f"- **Palmetas:** {total_tiles}")
+st.markdown(f"- **Bordillos:** {bordillos}")
+st.markdown(f"- **Esquineros:** {esquineros}")
+
+# Visualización
+fig, ax = plt.subplots(figsize=(cols, rows))
+
 for y in range(rows):
     for x in range(cols):
-        color_hex = colores.get(df.iat[y, x], "#FFFFFF")
-        ax.add_patch(plt.Rectangle(
-            (x, rows-1-y), 1, 1,
-            facecolor=color_hex,
-            edgecolor=borde_general,
-            linewidth=0.8
-        ))
+        ax.add_patch(patches.Rectangle((x, rows - 1 - y), 1, 1, facecolor=color_hex, edgecolor="white" if color_base == "Negro" else "black"))
 
-# 8. Bordillos
-if incluir_bordillos:
-    for side in pos_bord:
-        if side == "Arriba":
-            for x in range(cols):
-                ax.add_patch(plt.Rectangle((x, rows), 1, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
-        if side == "Abajo":
-            for x in range(cols):
-                ax.add_patch(plt.Rectangle((x, -0.15), 1, 0.15, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
-        if side == "Izquierda":
-            for y in range(rows):
-                ax.add_patch(plt.Rectangle((-0.15, y), 0.15, 1, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
-        if side == "Derecha":
-            for y in range(rows):
-                ax.add_patch(plt.Rectangle((cols, y), 0.15, 1, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+# Bordillos
+if agregar_bordillos:
+    for x in range(cols):
+        if "Arriba" in lados_bordillos:
+            ax.add_patch(patches.Rectangle((x, rows), 1, 0.15, facecolor="black", edgecolor="white" if color_base == "Negro" else "black"))
+        if "Abajo" in lados_bordillos:
+            ax.add_patch(patches.Rectangle((x, -0.15), 1, 0.15, facecolor="black", edgecolor="white" if color_base == "Negro" else "black"))
+    for y in range(rows):
+        if "Izquierda" in lados_bordillos:
+            ax.add_patch(patches.Rectangle((-0.15, y), 0.15, 1, facecolor="black", edgecolor="white" if color_base == "Negro" else "black"))
+        if "Derecha" in lados_bordillos:
+            ax.add_patch(patches.Rectangle((cols, y), 0.15, 1, facecolor="black", edgecolor="white" if color_base == "Negro" else "black"))
 
-# 9. Esquineros
-if incluir_esquineros:
-    s = 0.15
-    for (cx, cy) in [(0,0), (0,rows), (cols,0), (cols,rows)]:
-        ax.add_patch(plt.Rectangle((cx-s/2, cy-s/2), s, s, facecolor=color_bordillo, edgecolor=borde_general, linewidth=0.8))
+# Esquineros
+if agregar_esquineros:
+    esquinas = [(-0.15, -0.15), (cols, -0.15), (-0.15, rows), (cols, rows)]
+    for (x, y) in esquinas:
+        ax.add_patch(patches.Rectangle((x, y), 0.15, 0.15, facecolor="black", edgecolor="white" if color_base == "Negro" else "black"))
 
-# 10. Medidas REALES con líneas guía
-ax.text(cols/2, rows + 0.6, f"{ancho_real_m:.2f} m", ha='center', va='bottom', fontsize=10)
-ax.plot([0, 0], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
-ax.plot([cols, cols], [rows + 0.3, rows + 0.5], color="#666666", lw=0.8)
-ax.plot([0, cols], [rows + 0.5, rows + 0.5], color="#666666", lw=0.8)
+# Área real cubierta
+ax.plot([0, cols], [rows + 0.4, rows + 0.4], color="gray")
+ax.text(cols / 2, rows + 0.5, f"{real_ancho:.2f} m", ha="center", va="bottom")
 
-ax.text(cols + 0.6, rows/2, f"{largo_real_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
-ax.plot([cols + 0.3, cols + 0.5], [0, 0], color="#666666", lw=0.8)
-ax.plot([cols + 0.3, cols + 0.5], [rows, rows], color="#666666", lw=0.8)
-ax.plot([cols + 0.5, cols + 0.5], [0, rows], color="#666666", lw=0.8)
+ax.plot([cols + 0.4, cols + 0.4], [0, rows], color="gray")
+ax.text(cols + 0.5, rows / 2, f"{real_largo:.2f} m", va="center", ha="left", rotation=90)
 
-# 11. Finalización
-ax.set_xlim(-0.5, cols + 1.5)
-ax.set_ylim(-0.5, rows + 1.5)
-ax.set_aspect('equal')
-ax.axis('off')
+# Área ingresada (con excedente)
+ancho_tiles = ancho / TILE_M
+largo_tiles = largo / TILE_M
+x_offset = (cols - ancho_tiles) / 2
+y_offset = (rows - largo_tiles) / 2
+
+ax.add_patch(patches.Rectangle(
+    (x_offset, y_offset),
+    ancho_tiles,
+    largo_tiles,
+    edgecolor="red",
+    linestyle="--",
+    linewidth=2,
+    facecolor="none"
+))
+
+ax.set_xlim(-0.5, cols + 1)
+ax.set_ylim(-0.5, rows + 1)
+ax.set_aspect("equal")
+ax.axis("off")
 st.pyplot(fig)
