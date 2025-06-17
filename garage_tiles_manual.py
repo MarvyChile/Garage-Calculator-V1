@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import math
 
 st.set_page_config(layout="centered")
-st.title("Garage Tile Designer Manual v3.14")
+st.title("Garage Tile Designer Manual v3.14.1")
 
 # 1. Unidad de medida y entradas
 unidad = st.selectbox("Selecciona la unidad de medida", ["metros", "centímetros"], key="unidad")
@@ -40,6 +40,12 @@ colores = {
 lista_colores = list(colores.keys())
 color_base = st.selectbox("Color base", lista_colores, index=lista_colores.index("Blanco"))
 
+# ✅ Botón antes de mostrar cantidades
+if st.button("Aplicar color base"):
+    cols = math.ceil(ancho_m / 0.4)
+    rows = math.ceil(largo_m / 0.4)
+    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
+
 # 4. Cálculo de grilla y cantidades
 cols = math.ceil(ancho_m / 0.4)
 rows = math.ceil(largo_m / 0.4)
@@ -72,12 +78,7 @@ if 'df' not in st.session_state or st.session_state.df.shape != (rows, cols):
     st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
 df = st.session_state.df
 
-# 7. Aplicar color base
-if st.button("Aplicar color base"):
-    st.session_state.df = pd.DataFrame([[color_base]*cols for _ in range(rows)])
-    df = st.session_state.df
-
-# 8. Renderizar visualización
+# 7. Renderizar visualización
 fig, ax = plt.subplots(figsize=(cols/2, rows/2))
 for y in range(rows):
     for x in range(cols):
@@ -89,7 +90,7 @@ for y in range(rows):
             linewidth=0.8
         ))
 
-# 9. Bordillos siempre NEGROS, con borde dinámico
+# 8. Bordillos siempre NEGROS, con borde dinámico
 if incluir_bordillos:
     for side in pos_bord:
         if side == "Arriba":
@@ -113,7 +114,7 @@ if incluir_bordillos:
                                        edgecolor=borde_general,
                                        linewidth=0.8))
 
-# 10. Esquineros también NEGROS
+# 9. Esquineros también NEGROS
 if incluir_esquineros:
     s = 0.15
     for (cx, cy) in [(0,0),(0,rows),(cols,0),(cols,rows)]:
@@ -122,11 +123,11 @@ if incluir_esquineros:
                                    edgecolor=borde_general,
                                    linewidth=0.8))
 
-# 11. Mostrar medidas en la imagen
+# 10. Mostrar medidas en la imagen
 ax.text(cols/2, rows + 0.5, f"{largo_m:.2f} m", ha='center', va='bottom', fontsize=10)
 ax.text(cols + 0.5, rows/2, f"{ancho_m:.2f} m", ha='left', va='center', rotation=90, fontsize=10)
 
-# 12. Finalizar
+# 11. Finalizar
 ax.set_xlim(-0.5, cols + 1.5)
 ax.set_ylim(-0.5, rows + 1.5)
 ax.set_aspect('equal')
